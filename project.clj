@@ -24,7 +24,8 @@
     :omit-source   true
     :javac-options ["-target" "1.8", "-source" "1.8"]
     :target-path   "target/%s"
-    :uberjar-name  "elasticsearch.metabase-driver.jar"}
+    :uberjar-name  "elasticsearch.metabase-driver.jar"
+    :manifest      {"X-Compile-Elasticsearch-Version" "7.10.1"}}
 
    :unit_tests
    {:test-paths     ^:replace ["test_unit"]}})

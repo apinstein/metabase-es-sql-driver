@@ -4,6 +4,16 @@ Modern versions of elasticsearch (ship with a JDBC driver)[https://www.elastic.c
 
 This project maintains a metabase driver for this setup.
 
+# TODO
+
+This project is not even alpha quality yet...
+
+* Make sure username/passwords work
+* Make sure https support works
+* Make sure non-placeholder values for all connection params work
+* Impemlement proper defaults for all connection properties
+* Implement table discovery
+
 ## Setting up a test ES
 
 This repo contains a (full ES+Kibana)[https://www.elastic.co/guide/en/elastic-stack-get-started/current/get-started-docker.html] stack.
@@ -21,6 +31,9 @@ curl -X GET "localhost:9200/_cat/nodes?v&pretty"
 
 Open the (local Kibana Server)[http://localhost:5601], click on the "Sample Data" tab, and load the "Sample Flight Data". Click "Dashboard" when done to verify it's all working.
 
+### Enable Trial license (required to access SQL functionality)
+
+Open the (local Kibana Server's license page)[http://localhost:5601/app/management/stack/license_management] and click "Activate Trial".
 
 ## Setting up a test Metabase
 

@@ -17,10 +17,39 @@ docker-compose up
 curl -X GET "localhost:9200/_cat/nodes?v&pretty"
 ```
 
-### Add sample data
+### Add sample Elasticsearch data
 
 Open the (local Kibana Server)[http://localhost:5601], click on the "Sample Data" tab, and load the "Sample Flight Data". Click "Dashboard" when done to verify it's all working.
 
 
+## Setting up a test Metabase
 
+(Download a recent Metabase jar([https://www.metabase.com/docs/v0.37.4/operations-guide/running-the-metabase-jar-file.html] and move it to ./metabase.jar
 
+```
+java -jar metabase.jar
+```
+
+Open the (Metabase Server)[http://localhost:3000] and complete the initialization steps. Skip adding a data source.
+
+## Development Environment for Java
+
+(Set up JDK & clojure for dev)[https://purelyfunctional.tv/guide/how-to-install-clojure/].
+
+You'll need to add the new JDK to your path... something like:
+
+```
+export PATH=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home/bin:$PATH
+
+# Check for JDK...
+java -version
+> openjdk version "11.0.9.1" 2020-11-04
+> OpenJDK Runtime Environment AdoptOpenJDK (build 11.0.9.1+1)
+> OpenJDK 64-Bit Server VM AdoptOpenJDK (build 11.0.9.1+1, mixed mode)
+```
+
+Once you have the full `clj` stack working...
+
+```
+DEBUG=1 LEIN_SNAPSHOTS_IN_RELEASE=true lein uberjar
+```

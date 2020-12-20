@@ -1,0 +1,24 @@
+# Complete list of options here: https://github.com/metabase/metabase/wiki/Metabase-Plugin-Manifest-Reference
+info:
+  name: Metabase Elasticsearch Driver
+  version: 1.0.0-athena-jdbc-7.10.1
+  description: Allows Metabase to connect to Elasticsearch databases. Community Supported driver.
+driver:
+  name: elasticsearch
+  display-name: Elasticsearch
+  lazy-load: true
+  parent: sql-jdbc
+  connection-properties:
+    - merge:
+        - password
+        - name: secret_key
+        - display-name: Secret Key
+    - merge:
+        - additional-options
+        - display-name: Additional Elasticsearch connection string options
+          placeholder: "UseResultsetStreaming=0;LogLevel=6"
+init:
+  - step: load-namespace
+    namespace: metabase.driver.elasticsearch
+  - step: register-jdbc-driver
+    class: org.elasticsearch.xpack.sql.jdbc.EsDriver

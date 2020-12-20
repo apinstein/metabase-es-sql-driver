@@ -9,10 +9,15 @@ driver:
   lazy-load: true
   parent: sql-jdbc
   connection-properties:
+    - host
     - merge:
-        - password
-        - name: secret_key
-        - display-name: Secret Key
+        - port
+        - placeholder: 9200
+    - name: prefix
+      display-name: Prefix
+      required: false
+    - user
+    - password
     - merge:
         - additional-options
         - display-name: Additional Elasticsearch connection string options

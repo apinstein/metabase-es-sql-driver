@@ -4,7 +4,6 @@
             [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure.set :as set]
-            [medley.core :as m]
             [metabase.models
              [field :as field :refer [Field]]]
             [metabase.driver :as driver]
@@ -22,7 +21,6 @@
 ;;; |                                          metabase.driver method impls                                          |
 ;;; +----------------------------------------------------------------------------------------------------------------+
 
-
 ;(defmethod driver/supports? [:athena :foreign-keys] [_ _] true)
 ;
 ;(defmethod driver/supports? [:athena :nested-fields] [_ _] true)
@@ -32,16 +30,17 @@
 ;;; +----------------------------------------------------------------------------------------------------------------+
 
 ;;; ---------------------------------------------- sql-jdbc.connection -----------------------------------------------
+;;; Reference:
+;;; jdbc:[es|elasticsearch]://[[http|https]://]?[host[:port]]?/[prefix]?[\?[option=value]&]*
 
-(defmethod sql-jdbc.conn/connection-details->spec :athena [_ {:keys [region access_key secret_key s3_staging_dir workgroup db], :as details}]
+(defmethod sql-jdbc.conn/connection-details->spec :elasticsearch [_ {:keys [host port prefix user password], :as details}]
   (-> (merge
        {:classname        "org.elasticsearch.xpack.sql.jdbc.EsDriver"
         :subprotocol      "es"
-        :user             access_key
-        :password         secret_key
-    ; :LogLevel    6
+        ; TODO: prefix -- good reference: https://github.com/metabase/metabase/blob/master/src/metabase/driver/postgres.clj#L302-L316
+        :subname          (str "//http://" host ":" port "/")
         }
-       (dissoc details :db))
+      (dissoc details :host :port :db :engine :prefix))
       (sql-jdbc.common/handle-additional-options details, :seperator-style :semicolon)))
 
 ;;; ------------------------------------------------- sql-jdbc.sync --------------------------------------------------

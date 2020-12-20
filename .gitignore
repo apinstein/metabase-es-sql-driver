@@ -16,8 +16,7 @@ pom.xml.asc
 *.iml
 
 # common local artifacts used during dev
-metabase.jar
-metabase.db.mv.db
-metabase.db.trace.db
+## we can install mb locally...
+metabase/
 ## we used this as a starting point...
 athena-driver

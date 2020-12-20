@@ -24,9 +24,10 @@ Open the (local Kibana Server)[http://localhost:5601], click on the "Sample Data
 
 ## Setting up a test Metabase
 
-(Download a recent Metabase jar([https://www.metabase.com/docs/v0.37.4/operations-guide/running-the-metabase-jar-file.html] and move it to ./metabase.jar
+(Download a recent Metabase jar([https://www.metabase.com/docs/v0.37.4/operations-guide/running-the-metabase-jar-file.html] and move it to ./metabase/metabase.jar
 
 ```
+cd metabase/
 java -jar metabase.jar
 ```
 
@@ -51,5 +52,6 @@ java -version
 Once you have the full `clj` stack working...
 
 ```
-DEBUG=1 LEIN_SNAPSHOTS_IN_RELEASE=true lein uberjar
+DEBUG=1 LEIN_SNAPSHOTS_IN_RELEASE=true lein uberjar \
+ && cp target/uberjar/elasticsearch.metabase-driver.jar ./metabase/plugins 
 ```

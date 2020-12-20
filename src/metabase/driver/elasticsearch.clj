@@ -10,9 +10,10 @@
             [metabase.driver.sql-jdbc
              [common :as sql-jdbc.common]
              [connection :as sql-jdbc.conn]
+             [execute :as sql-jdbc.execute]
              [sync :as sql-jdbc.sync]]
             [metabase.util :as u])
-  (:import [java.sql DatabaseMetaData Timestamp]
+  (:import [java.sql Connection ResultSet Types DatabaseMetaData Timestamp]
            (java.time OffsetDateTime ZonedDateTime)))
 
 (driver/register! :elasticsearch, :parent :sql-jdbc)
@@ -78,3 +79,34 @@
                             database-type))
           :type/*)))
 
+;(defmethod sql-jdbc.execute/connection-with-timezone :elasticsearch
+;  [driver database ^String timezone-id]
+;  (let [conn (.getConnection (datasource database))]
+;    (try
+;      (set-best-transaction-level! driver conn)
+;      (set-time-zone-if-supported! driver conn timezone-id)
+;      (try
+;        (.setReadOnly conn true)
+;        (catch Throwable e
+;          (log/debug e (trs "Error setting connection to read-only"))))
+;      (try
+;        (.setHoldability conn ResultSet/HOLD_CURSORS_OVER_COMMIT)
+;        (catch Throwable e
+;          (log/debug e (trs "Error setting default holdability for connection"))))
+;      conn
+;      (catch Throwable e
+;        (.close conn)
+;        (throw e)))))
+
+(defmethod sql-jdbc.execute/connection-with-timezone :elasticsearch
+  [driver database ^String timezone-id]
+  (let [conn (.getConnection (sql-jdbc.execute/datasource database))]
+    (try
+      (try
+        (.setHoldability conn ResultSet/HOLD_CURSORS_OVER_COMMIT)
+        (catch Throwable e
+          (log/debug e (trs "Error setting default holdability for connection"))))
+      conn
+      (catch Throwable e
+        (.close conn)
+        (throw e)))))

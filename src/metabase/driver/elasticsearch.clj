@@ -12,7 +12,9 @@
              [connection :as sql-jdbc.conn]
              [execute :as sql-jdbc.execute]
              [sync :as sql-jdbc.sync]]
-            [metabase.util :as u])
+            [metabase.util
+             [honeysql-extensions :as hx]
+             [i18n :refer [trs]]])
   (:import [java.sql Connection ResultSet Types DatabaseMetaData Timestamp]
            (java.time OffsetDateTime ZonedDateTime)))
 
@@ -47,28 +49,28 @@
 ;;; ------------------------------------------------- sql-jdbc.sync --------------------------------------------------
 
 ;; Map of column types -> Field base types
+;; THESE ARE STOLEN FROM ATHENA DRIVER AND PROBABLY WRONG
 ;; https://s3.amazonaws.com/athena-downloads/drivers/JDBC/SimbaAthenaJDBC_2.0.5/docs/Simba+Athena+JDBC+Driver+Install+and+Configuration+Guide.pdf
-;(defmethod sql-jdbc.sync/database-type->base-type :athena [_ database-type]
-;  ({:array      :type/Array
-;    :bigint     :type/BigInteger
-;    :binary     :type/*
-;    :varbinary  :type/*
-;    :boolean    :type/Boolean
-;    :char       :type/Text
-;    :date       :type/Date
-;    :decimal    :type/Decimal
-;    :double     :type/Float
-;    :float      :type/Float
-;    :integer    :type/Integer
-;    :int        :type/Integer
-;    :map        :type/*
-;    :smallint   :type/Integer
-;    :string     :type/Text
-;    :struct     :type/Dictionary
-;    :timestamp  :type/DateTime
-;    :tinyint    :type/Integer
-;    :varchar    :type/Text} database-type))
-
+(defmethod sql-jdbc.sync/database-type->base-type :elasticsearch [_ database-type]
+  ({:array      :type/Array
+    :bigint     :type/BigInteger
+    :binary     :type/*
+    :varbinary  :type/*
+    :boolean    :type/Boolean
+    :char       :type/Text
+    :date       :type/Date
+    :decimal    :type/Decimal
+    :double     :type/Float
+    :float      :type/Float
+    :integer    :type/Integer
+    :int        :type/Integer
+    :map        :type/*
+    :smallint   :type/Integer
+    :string     :type/Text
+    :struct     :type/Dictionary
+    :timestamp  :type/DateTime
+    :tinyint    :type/Integer
+    :varchar    :type/Text} database-type))
 
 ;; keyword function converts database-type variable to a symbol, so we use symbols above to map the types
 (defn- database-type->base-type-or-warn
@@ -79,24 +81,23 @@
                             database-type))
           :type/*)))
 
-;(defmethod sql-jdbc.execute/connection-with-timezone :elasticsearch
-;  [driver database ^String timezone-id]
-;  (let [conn (.getConnection (datasource database))]
-;    (try
-;      (set-best-transaction-level! driver conn)
-;      (set-time-zone-if-supported! driver conn timezone-id)
-;      (try
-;        (.setReadOnly conn true)
-;        (catch Throwable e
-;          (log/debug e (trs "Error setting connection to read-only"))))
-;      (try
-;        (.setHoldability conn ResultSet/HOLD_CURSORS_OVER_COMMIT)
-;        (catch Throwable e
-;          (log/debug e (trs "Error setting default holdability for connection"))))
-;      conn
-;      (catch Throwable e
-;        (.close conn)
-;        (throw e)))))
+;; Need to override the next 2 functions as they use ResultSet/CLOSE_CURSORS_AT_COMMIT which isn't supported by ES Driver
+(defmethod sql-jdbc.execute/prepared-statement :elasticsearch
+  [driver ^Connection conn ^String sql params]
+  (let [stmt (.prepareStatement conn sql
+                                ResultSet/TYPE_FORWARD_ONLY
+                                ResultSet/CONCUR_READ_ONLY
+                                ResultSet/HOLD_CURSORS_OVER_COMMIT)]
+    (try
+      (try
+        (.setFetchDirection stmt ResultSet/FETCH_FORWARD)
+        (catch Throwable e
+          (log/debug e (trs "Error setting result set fetch direction to FETCH_FORWARD"))))
+      (sql-jdbc.execute/set-parameters! driver stmt params)
+      stmt
+      (catch Throwable e
+        (.close stmt)
+        (throw e)))))
 
 (defmethod sql-jdbc.execute/connection-with-timezone :elasticsearch
   [driver database ^String timezone-id]
@@ -110,3 +111,4 @@
       (catch Throwable e
         (.close conn)
         (throw e)))))
+;; END ResultSet/CLOSE_CURSORS_AT_COMMIT -> ResultSet/HOLD_CURSORS_OVER_COMMIT override

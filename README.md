@@ -64,7 +64,33 @@ java -version
 
 Once you have the full `clj` stack working...
 
+### Metabase Dependency
+
+I am not sure how/why exactly this works, but the latest version of the metabase code won't be available to this project until you build the driver support from the core metabase project.
+
+```
+# elsewhere on your machine...
+git clone git@github.com:metabase/metabase.git
+cd metabase
+lein install-for-building-drivers
+```
+
+Failure to do this will result in errors that look like the compiler not seeing functions from metabase-core that you know exist.
+
+### Dev Cycle
+
+Make your changes and run this to compile & re-run metabase.
+
 ```
 DEBUG=1 LEIN_SNAPSHOTS_IN_RELEASE=true lein uberjar \
  && cp target/uberjar/elasticsearch.metabase-driver.jar ./metabase/plugins 
+
+# kill and restart metabase 
+java -jar metabase.jar
 ```
+
+# Test ideas
+
+select 1
+
+select * from kibana_sample_data_flights

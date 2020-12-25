@@ -21,11 +21,16 @@
 (driver/register! :elasticsearch, :parent :sql-jdbc)
 
 ;;; +----------------------------------------------------------------------------------------------------------------+
+;;; |                                          ES SQL Documentation                                                  |
+;;; +----------------------------------------------------------------------------------------------------------------+
+;;; https://www.elastic.co/guide/en/elasticsearch/reference/current/sql-spec.html
+
+;;; +----------------------------------------------------------------------------------------------------------------+
 ;;; |                                          metabase.driver method impls                                          |
 ;;; +----------------------------------------------------------------------------------------------------------------+
 
-;(defmethod driver/supports? [:athena :foreign-keys] [_ _] true)
-;
+(defmethod driver/supports? [:elasticsearch :foreign-keys] [_ _] false)
+
 ;(defmethod driver/supports? [:athena :nested-fields] [_ _] true)
 
 ;;; +----------------------------------------------------------------------------------------------------------------+
@@ -49,28 +54,41 @@
 ;;; ------------------------------------------------- sql-jdbc.sync --------------------------------------------------
 
 ;; Map of column types -> Field base types
-;; THESE ARE STOLEN FROM ATHENA DRIVER AND PROBABLY WRONG
-;; https://s3.amazonaws.com/athena-downloads/drivers/JDBC/SimbaAthenaJDBC_2.0.5/docs/Simba+Athena+JDBC+Driver+Install+and+Configuration+Guide.pdf
+;; https://www.elastic.co/guide/en/elasticsearch/reference/current/sql-data-types.html
+;; TODO: the below were copied from athena driver and should be updated to above match ^^^
+;;       they need to be all tested
 (defmethod sql-jdbc.sync/database-type->base-type :elasticsearch [_ database-type]
-  ({:array      :type/Array
-    :bigint     :type/BigInteger
-    :binary     :type/*
-    :varbinary  :type/*
-    :boolean    :type/Boolean
-    :char       :type/Text
-    :date       :type/Date
-    :decimal    :type/Decimal
-    :double     :type/Float
-    :float      :type/Float
-    :integer    :type/Integer
-    :int        :type/Integer
-    :map        :type/*
-    :smallint   :type/Integer
-    :string     :type/Text
-    :struct     :type/Dictionary
-    :timestamp  :type/DateTime
-    :tinyint    :type/Integer
-    :varchar    :type/Text} database-type))
+  ({
+    :boolean              :type/Boolean
+    :byte                 :type/Integer
+    :short                :type/Integer
+    :integer              :type/Integer
+    :long                 :type/BigInteger
+    :double               :type/Float
+    :float                :type/Float
+    :half_float           :type/Float
+    :scaled_float         :type/Float
+    :keyword              :type/Text
+    :constant_keyword     :type/Text
+    :text                 :type/Text
+    :binary               :type/*
+    :date                 :type/DateTime
+    :ip                   :type/Text
+    :object               :type/Dictionary
+    :nested               :type/Dictionary} database-type))
+
+;    leftover types from athena
+;    :array                :type/Array
+;    :varbinary            :type/*
+;    :char                 :type/Text
+;    :date                 :type/Date
+;    :decimal              :type/Decimal
+;    :int                  :type/Integer
+;    :map                  :type/*
+;    :string               :type/Text
+;    :struct               :type/Dictionary
+;    :timestamp            :type/DateTime
+;    :varchar              :type/Text} database-type))
 
 ;; keyword function converts database-type variable to a symbol, so we use symbols above to map the types
 (defn- database-type->base-type-or-warn

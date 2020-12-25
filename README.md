@@ -35,17 +35,6 @@ Open the (local Kibana Server)[http://localhost:5601], click on the "Sample Data
 
 Open the (local Kibana Server's license page)[http://localhost:5601/app/management/stack/license_management] and click "Activate Trial".
 
-## Setting up a test Metabase
-
-(Download a recent Metabase jar([https://www.metabase.com/docs/v0.37.4/operations-guide/running-the-metabase-jar-file.html] and move it to ./metabase/metabase.jar
-
-```
-cd metabase/
-java -jar metabase.jar
-```
-
-Open the (Metabase Server)[http://localhost:3000] and complete the initialization steps. Skip adding a data source.
-
 ## Development Environment for Java
 
 (Set up JDK & clojure for dev)[https://purelyfunctional.tv/guide/how-to-install-clojure/].
@@ -64,28 +53,36 @@ java -version
 
 Once you have the full `clj` stack working...
 
-### Metabase Dependency
+## Setting up the Metabase-Core project
 
-I am not sure how/why exactly this works, but the latest version of the metabase code won't be available to this project until you build the driver support from the core metabase project.
+The best way to do development on drivers is to download the (`metabase-core` codebase)[https://github.com/metabase/metabase] and drop this project into `modules/drivers`.
 
 ```
-# elsewhere on your machine...
+# somewhere on your machine...
 git clone git@github.com:metabase/metabase.git
 cd metabase
 lein install-for-building-drivers
+
+# install our plugin
+cd modules/drivers
+git clone git@github.com:apinstein/metabase-es-sql-driver.git
 ```
 
-Failure to do this will result in errors that look like the compiler not seeing functions from metabase-core that you know exist.
+NOTE: Failure to have metabase-core built properly via `lein install-for-building-drivers` will result in errors that look like the compiler not seeing functions from metabase-core that you know exist.
+
+Open the (Metabase Server)[http://localhost:3000] and complete the initialization steps. Skip adding a data source.
 
 ### Dev Cycle
 
 Make your changes and run this to compile & re-run metabase.
 
+#### Building an uberjar for "drop-in" of our driver to any metabase
+
 ```
 DEBUG=1 LEIN_SNAPSHOTS_IN_RELEASE=true lein uberjar \
- && cp target/uberjar/elasticsearch.metabase-driver.jar ./metabase/plugins 
+ && cp target/uberjar/elasticsearch.metabase-driver.jar ./metabase/plugins
 
-# kill and restart metabase 
+# kill and restart metabase
 java -jar metabase.jar
 ```
 
